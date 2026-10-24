@@ -91,53 +91,6 @@ stateDiagram-v2
 
 ---
 
-## 🗄️ Database Schema
-
-The database relies on PostgreSQL with foreign key constraints, unique constraints, and check constraints to guarantee ACID compliance.
-
-```sql
--- 1. Donors Table
-CREATE TABLE donors (
-    donor_id SERIAL PRIMARY KEY,
-    full_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    phone VARCHAR(20) NOT NULL UNIQUE,
-    blood_group VARCHAR(5) NOT NULL CHECK (blood_group IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')),
-    city_or_area VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- 2. Staff Table
-CREATE TABLE staff (
-    staff_id SERIAL PRIMARY KEY,
-    full_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(20) NOT NULL CHECK (role IN ('staff', 'admin')),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- 3. Appointments Table
-CREATE TABLE appointments (
-    appointment_id SERIAL PRIMARY KEY,
-    donor_id INT NOT NULL REFERENCES donors(donor_id) ON DELETE CASCADE,
-    appointment_date DATE NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'requested' CHECK (status IN ('requested', 'approved', 'rejected', 'completed')),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- 4. Donations Table
-CREATE TABLE donations (
-    donation_id SERIAL PRIMARY KEY,
-    donor_id INT NOT NULL REFERENCES donors(donor_id) ON DELETE CASCADE,
-    appointment_id INT REFERENCES appointments(appointment_id) ON DELETE SET NULL,
-    donation_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-```
-
----
 
 ## 📂 Project Structure
 
@@ -287,68 +240,7 @@ cd Blood-Donation-MS-v2
 
 ---
 
-## 📡 API Endpoints
 
-All responses follow a consistent JSON format:
-- **Success**: `{ "success": true, "message": "...", "data": { ... } }`
-- **Error**: `{ "success": false, "message": "..." }`
-
-### 🩸 Donor Endpoints
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/api/donors/register` | Public | Register a new blood donor |
-| `POST` | `/api/donors/login` | Public | Donor login (returns JWT token) |
-| `GET` | `/api/donors/me` | Donor | Retrieve profile of the logged-in donor |
-| `PUT` | `/api/donors/me` | Donor | Update phone, blood group, or city/area |
-
-### 📅 Appointment Endpoints
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/api/appointments` | Donor | Request a new donation appointment |
-| `GET` | `/api/appointments/me` | Donor | Get all appointments booked by the donor |
-
-### 🩸 Donation History Endpoints
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/donations/me` | Donor | Fetch verified completed donation records |
-
-### 🏥 Staff & Admin Endpoints
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/api/staff/register` | Public | Register staff or admin account |
-| `POST` | `/api/staff/login` | Public | Staff/Admin login (returns JWT token) |
-| `GET` | `/api/staff/appointments` | Staff / Admin | View all appointments with donor info |
-| `PATCH` | `/api/staff/appointments/:id/approve` | Staff / Admin | Change status from `requested` to `approved` |
-| `PATCH` | `/api/staff/appointments/:id/reject` | Staff / Admin | Change status from `requested` to `rejected` |
-| `PATCH` | `/api/staff/appointments/:id/complete`| Staff / Admin | Mark appointment `completed` and record donation |
-
----
-
-## 👥 Role-Based Access Control (RBAC)
-
-| Feature / Resource | Public | Donor | Staff / Admin |
-| :--- | :---: | :---: | :---: |
-| View Home & Landing Info | ✅ | ✅ | ✅ |
-| Register & Login | ✅ | ✅ | ✅ |
-| Book & Track Personal Appointments | ❌ | ✅ | ❌ |
-| Update Donor Profile | ❌ | ✅ | ❌ |
-| View Personal Donation History | ❌ | ✅ | ❌ |
-| View All Donor Appointments | ❌ | ❌ | ✅ |
-| Approve / Reject Appointments | ❌ | ❌ | ✅ |
-| Complete Appointment & Record Donation | ❌ | ❌ | ✅ |
-
----
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome!
-1. Fork the Project.
-2. Create your Feature Branch (`git checkout -b feature/NewFeature`).
-3. Commit your Changes (`git commit -m 'Add NewFeature'`).
-4. Push to the Branch (`git push origin feature/NewFeature`).
-5. Open a Pull Request.
-
----
 
 ## 📄 License
 
